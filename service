@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# env vars passed from CloudCenter
+# $SALTMASTER = IP or DNS name of the Salt Master node
+# 
 
 exec > >(tee -a /usr/local/osmosix/logs/service.log) 2>&1
 
@@ -18,11 +22,13 @@ USER_ENV="/usr/local/osmosix/etc/userenv"
 case $cmd in
 	install)
 		log "[INSTALL] Installing $SVCNAME bootstrap scripts"
+		agentSendLogMessage "Installing SaltStack Minion Scripts" 
 		sudo yum install wget -y
 		wget -O bootstrap-salt.sh https://bootstrap.saltstack.com/
 		;;
 	deploy)
 		log "[DEPLOY] Deploying $SVCNAME packages using salt bootstrap"
+		agentSendLogMessage "Deploying SaltStack BootStrap service"
 		sudo sh bootstrap-salt.sh -A 35.197.38.177
 		;;
 	configure)
@@ -30,35 +36,22 @@ case $cmd in
 		;;
 	start)
 		log "[START] Starting $SVCNAME Service"
+		agentSendLogMessage "Starting SaltStack Minion Daemon" 
 		sudo salt-minion -d
 		log "[START] $SVCNAME successfully started."
 		;;
 	stop)
 		log "[STOP] Invoking pre-stop user script"
-		if [ ! -z $cliqrUserScript -a -f $cliqrUserScript ]; then
-			$cliqrUserScript 3 $cliqrUserScriptParams
-		fi
-
 		log "[STOP] Stopping $SVCNAME"
-
-		log "[STOP] Invoking post-stop user script"
-		if [ ! -z $cliqrUserScript -a -f $cliqrUserScript ]; then
-			$cliqrUserScript 4 $cliqrUserScriptParams
-		fi
+		sudo service salt-minion stop
 		log "[STOP] $SVCNAME successfully stopped."
 		;;
 	restart)
 		log "[RESTART] Invoking pre-restart user script"
-		if [ ! -z $cliqrUserScript -a -f $cliqrUserScript ]; then
-			$cliqrUserScript 5 $cliqrUserScriptParams
-		fi
-
 		log "[RESTART] Restarting $SVCNAME"
-
+        sudo service salt-minion stop
+        sudo salt-minion -d
 		log "[RESTART] Invoking post-restart user script"
-		if [ ! -z $cliqrUserScript -a -f $cliqrUserScript ]; then
-			$cliqrUserScript 6 $cliqrUserScriptParams
-		fi
 		;;
 	reload)
 		log "[RELOAD] Invoking pre-reload user script"
