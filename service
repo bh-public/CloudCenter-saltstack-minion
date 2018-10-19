@@ -49,8 +49,8 @@ case $cmd in
 	restart)
 		log "[RESTART] Invoking pre-restart user script"
 		log "[RESTART] Restarting $SVCNAME"
-        sudo service salt-minion stop
-        sudo salt-minion -d
+                sudo service salt-minion stop
+                sudo salt-minion -d
 		log "[RESTART] Invoking post-restart user script"
 		;;
 	reload)
